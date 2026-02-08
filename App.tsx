@@ -4,6 +4,7 @@ import { useRealtimeMetrics } from './hooks/useRealtimeMetrics';
 import { Card } from './components/Card';
 import { Toggle } from './components/Toggle';
 import { ThemeToggle } from './components/ThemeToggle';
+import { InternalLink } from './components/InternalLink';
 import { ServiceState, GeminiInsight, Theme } from './types';
 import { getSystemInsight } from './services/geminiService';
 
@@ -55,34 +56,12 @@ const App: React.FC = () => {
     }
   }, [isConnected]);
 
-  // Helper to get log specific classes
   const getLogClasses = (type: string) => {
     switch (type) {
-      case 'error':
-        return {
-          border: 'border-red-500/50',
-          text: 'text-red-500 dark:text-red-400',
-          bg: 'hover:bg-red-500/5'
-        };
-      case 'warn':
-        return {
-          border: 'border-orange-500/50',
-          text: 'text-orange-500 dark:text-orange-400',
-          bg: 'hover:bg-orange-500/5'
-        };
-      case 'success':
-        return {
-          border: 'border-green-500/50',
-          text: 'text-green-600 dark:text-green-500',
-          bg: 'hover:bg-green-500/5'
-        };
-      case 'info':
-      default:
-        return {
-          border: 'border-blue-500/50',
-          text: 'text-blue-500 dark:text-blue-400',
-          bg: 'hover:bg-blue-500/5'
-        };
+      case 'error': return { border: 'border-red-500/50', text: 'text-red-500 dark:text-red-400', bg: 'hover:bg-red-500/5' };
+      case 'warn': return { border: 'border-orange-500/50', text: 'text-orange-500 dark:text-orange-400', bg: 'hover:bg-orange-500/5' };
+      case 'success': return { border: 'border-green-500/50', text: 'text-green-600 dark:text-green-500', bg: 'hover:bg-green-500/5' };
+      default: return { border: 'border-blue-500/50', text: 'text-blue-500 dark:text-blue-400', bg: 'hover:bg-blue-500/5' };
     }
   };
 
@@ -134,10 +113,9 @@ const App: React.FC = () => {
           <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
         </Card>
 
-        {/* Refined CPU Circle */}
+        {/* CPU Circle */}
         <Card className="md:col-span-4 flex flex-col items-center justify-center relative h-64 overflow-hidden">
           <h3 className="absolute top-5 left-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Real-time CPU</h3>
-          
           <div className="relative w-44 h-44 flex items-center justify-center">
             <svg viewBox="0 0 176 176" className="w-full h-full transform -rotate-90 overflow-visible">
               <defs>
@@ -145,74 +123,59 @@ const App: React.FC = () => {
                   <stop offset="0%" stopColor="#3b82f6" />
                   <stop offset="100%" stopColor="#2dd4bf" />
                 </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
+                <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
               </defs>
-              
-              {/* Subtle background ring */}
-              <circle 
-                cx="88" cy="88" r="76" 
-                stroke="currentColor" strokeWidth="1" fill="none" 
-                className="text-blue-500 opacity-5" 
-              />
-              
-              {/* Main Track */}
-              <circle 
-                cx="88" cy="88" r="70" 
-                stroke="currentColor" strokeWidth="12" fill="none" 
-                className="text-gray-300 dark:text-gray-800 opacity-20" 
-              />
-              
-              {/* Refined Progress Arc with Gradient and Smooth Transition */}
-              <circle 
-                cx="88" cy="88" r="70" 
-                stroke="url(#cpuGradient)" strokeWidth="12" fill="none" 
-                strokeDasharray={circumference} 
-                strokeDashoffset={circumference - (stats.cpu / 100) * circumference} 
-                strokeLinecap="round"
-                filter="url(#glow)"
-                className="transition-all duration-1000 ease-in-out" 
-              />
-
-              {/* End Tip Glow */}
-              <circle 
-                cx={88 + 70 * Math.cos((stats.cpu / 100) * 2 * Math.PI - Math.PI / 2)}
-                cy={88 + 70 * Math.sin((stats.cpu / 100) * 2 * Math.PI - Math.PI / 2)}
-                r="4"
-                fill="#ffffff"
-                className="transition-all duration-1000 ease-in-out opacity-80"
-              />
+              <circle cx="88" cy="88" r="76" stroke="currentColor" strokeWidth="1" fill="none" className="text-blue-500 opacity-5" />
+              <circle cx="88" cy="88" r="70" stroke="currentColor" strokeWidth="12" fill="none" className="text-gray-300 dark:text-gray-800 opacity-20" />
+              <circle cx="88" cy="88" r="70" stroke="url(#cpuGradient)" strokeWidth="12" fill="none" strokeDasharray={circumference} strokeDashoffset={circumference - (stats.cpu / 100) * circumference} strokeLinecap="round" filter="url(#glow)" className="transition-all duration-1000 ease-in-out" />
+              <circle cx={88 + 70 * Math.cos((stats.cpu / 100) * 2 * Math.PI - Math.PI / 2)} cy={88 + 70 * Math.sin((stats.cpu / 100) * 2 * Math.PI - Math.PI / 2)} r="4" fill="#ffffff" className="transition-all duration-1000 ease-in-out opacity-80" />
             </svg>
-            
             <div className="absolute flex flex-col items-center select-none pointer-events-none">
               <span className={`text-5xl font-black font-mono tracking-tighter transition-all duration-300 ${stats.cpu > 85 ? 'text-red-500 scale-110' : 'text-gray-900 dark:text-gray-100'}`}>
                 {Math.round(stats.cpu)}<span className="text-xl ml-0.5 opacity-50">%</span>
               </span>
-              <div className="flex items-center gap-1 mt-0.5">
-                 <span className={`w-1.5 h-1.5 rounded-full ${stats.cpu > 80 ? 'bg-red-500 animate-ping' : 'bg-blue-500'}`}></span>
-                 <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Augmented</span>
-              </div>
             </div>
-          </div>
-          
-          {/* Activity Bar Indicators */}
-          <div className="absolute bottom-4 w-2/3 h-1 flex gap-1 justify-center">
-             {[...Array(15)].map((_, i) => (
-               <div 
-                key={i} 
-                className={`flex-1 h-full rounded-full transition-all duration-300 ${ (stats.cpu / 100) * 15 > i ? 'bg-blue-500 scale-y-125' : 'bg-gray-300 dark:bg-gray-800' }`}
-               ></div>
-             ))}
           </div>
         </Card>
 
-        {/* Gemini AI Insight */}
-        <Card className="md:col-span-5 h-80 flex flex-col">
+        {/* Internal Links Section - NEW */}
+        <Card className="md:col-span-12 flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-[0.3em]">System Portal & Directories</h3>
+            <div className="h-px flex-1 mx-6 soft-ui-inset opacity-30"></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <InternalLink 
+              title="Knowledge Base" 
+              description="Full architecture blueprints and cluster deployment manuals." 
+              icon="📄" 
+              path="#kb" 
+              tag="Docs"
+            />
+            <InternalLink 
+              title="Security Hub" 
+              description="Vulnerability patch notes and compliance audit logs." 
+              icon="🛡️" 
+              path="#security" 
+            />
+            <InternalLink 
+              title="Topology Map" 
+              description="Interactive visual routing of all edge nodes and peers." 
+              icon="🌐" 
+              path="#map" 
+              tag="Active"
+            />
+            <InternalLink 
+              title="API Gateway" 
+              description="Endpoint testing environment and token management." 
+              icon="🔌" 
+              path="#api" 
+            />
+          </div>
+        </Card>
+
+        {/* Re-aligned Middle Grid */}
+        <Card className="md:col-span-4 h-80 flex flex-col">
           <div className="flex items-center justify-between mb-4">
              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Neural Insights</h3>
              <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-[10px] rounded-full font-bold tracking-tighter">GEMINI AI</span>
@@ -238,44 +201,33 @@ const App: React.FC = () => {
           )}
         </Card>
 
-        {/* Resource Distribution (RAM / IO / DISK) */}
-        <Card className="md:col-span-3 flex flex-col justify-between h-80">
+        <Card className="md:col-span-4 flex flex-col justify-between h-80">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Resource Graph</h3>
           <div className="flex space-x-5 h-48 items-end justify-center py-4">
             <div className="flex flex-col items-center h-full" title={`RAM: ${Math.round(stats.ram)}%`}>
                <div className="w-6 soft-ui-inset relative h-full rounded-full overflow-hidden">
-                <div 
-                  className="absolute bottom-0 w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-full transition-all duration-700 ease-in-out"
-                  style={{ height: `${stats.ram}%` }}
-                ></div>
+                <div className="absolute bottom-0 w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-full transition-all duration-700 ease-in-out" style={{ height: `${stats.ram}%` }}></div>
               </div>
               <span className="text-[10px] mt-2 font-bold text-gray-400">RAM</span>
             </div>
             <div className="flex flex-col items-center h-full" title={`Disk Usage: ${Math.round(stats.disk)}%`}>
               <div className="w-6 soft-ui-inset relative h-full rounded-full overflow-hidden">
-                <div 
-                  className="absolute bottom-0 w-full bg-gradient-to-t from-green-600 to-green-400 rounded-full transition-all duration-700 ease-in-out"
-                  style={{ height: `${stats.disk}%` }}
-                ></div>
+                <div className="absolute bottom-0 w-full bg-gradient-to-t from-green-600 to-green-400 rounded-full transition-all duration-700 ease-in-out" style={{ height: `${stats.disk}%` }}></div>
               </div>
               <span className="text-[10px] mt-2 font-bold text-gray-400 text-green-500/80">DSK</span>
             </div>
             <div className="flex flex-col items-center h-full" title="I/O Activity">
               <div className="w-6 soft-ui-inset relative h-full rounded-full overflow-hidden">
-                <div 
-                  className="absolute bottom-0 w-full bg-gradient-to-t from-purple-500 to-purple-300 rounded-full transition-all duration-700 ease-in-out opacity-60"
-                  style={{ height: `${(stats.network / 1500) * 100}%` }}
-                ></div>
+                <div className="absolute bottom-0 w-full bg-gradient-to-t from-purple-500 to-purple-300 rounded-full transition-all duration-700 ease-in-out opacity-60" style={{ height: `${(stats.network / 1500) * 100}%` }}></div>
               </div>
               <span className="text-[10px] mt-2 font-bold text-gray-400">IO</span>
             </div>
           </div>
-          <div className="text-center font-mono text-sm font-bold text-gray-500">
+          <div className="text-center font-mono text-xs font-bold text-gray-400 uppercase tracking-tighter">
             NET IN: {Math.round(stats.network)} KB/s
           </div>
         </Card>
 
-        {/* Services */}
         <Card className="md:col-span-4 h-80 flex flex-col">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Process Management</h3>
           <div className="space-y-6 flex-1 flex flex-col justify-center">
@@ -298,10 +250,7 @@ const App: React.FC = () => {
             {logs.map((log) => {
               const classes = getLogClasses(log.type);
               return (
-                <div 
-                  key={log.id} 
-                  className={`flex gap-4 border-l-2 pl-3 py-1.5 transition-all duration-200 group ${classes.border} ${classes.bg}`}
-                >
+                <div key={log.id} className={`flex gap-4 border-l-2 pl-3 py-1.5 transition-all duration-200 group ${classes.border} ${classes.bg}`}>
                   <span className="text-gray-400 dark:text-gray-500 min-w-[80px] font-bold select-none">{log.timestamp}</span>
                   <span className={`font-semibold tracking-tight ${classes.text}`}>
                     <span className="opacity-50 mr-2 uppercase text-[9px] font-black tracking-widest">[{log.type}]</span>
@@ -310,7 +259,6 @@ const App: React.FC = () => {
                 </div>
               );
             })}
-            {logs.length === 0 && <div className="text-gray-400 italic py-2">Establishing buffer connection...</div>}
           </div>
           <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-[var(--bg)] to-transparent pointer-events-none"></div>
         </Card>
