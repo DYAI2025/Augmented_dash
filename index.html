@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DYAI Augmentation Dash</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #e0e5ec;
+      --text: #4a5568;
+      --shadow-light: #ffffff;
+      --shadow-dark: #a3b1c6;
+      --accent: #3b82f6;
+      --card-bg: var(--bg);
+    }
+
+    html.dark {
+      --bg: #1a1b21;
+      --text: #a0a0b0;
+      --shadow-light: #24252d;
+      --shadow-dark: #101014;
+      --accent: #60a5fa;
+      --card-bg: #1a1b21;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Custom Neumorphism Utilities */
+    .soft-ui {
+      background: var(--bg);
+      box-shadow: 9px 9px 16px var(--shadow-dark), 
+                 -9px -9px 16px var(--shadow-light);
+      transition: all 0.3s ease;
+    }
+
+    .soft-ui-inset {
+      background: var(--bg);
+      box-shadow: inset 6px 6px 10px var(--shadow-dark), 
+                 inset -6px -6px 10px var(--shadow-light);
+      transition: all 0.3s ease;
+    }
+
+    .soft-ui-pressed {
+      box-shadow: inset 4px 4px 8px var(--shadow-dark), 
+                 inset -4px -4px 8px var(--shadow-light);
+      transform: translateY(1px);
+    }
+
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .animate-live { animation: pulse-slow 2s infinite; }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--shadow-dark);
+      border-radius: 10px;
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>
