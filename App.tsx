@@ -86,7 +86,8 @@ const App: React.FC = () => {
     }
   };
 
-  const circumference = 2 * Math.PI * 70;
+  const radius = 70;
+  const circumference = 2 * Math.PI * radius;
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-8 space-y-8 min-h-screen">
@@ -121,7 +122,6 @@ const App: React.FC = () => {
         {/* Time Card */}
         <Card className="md:col-span-8 flex flex-col justify-center relative overflow-hidden h-64">
           <div className="relative z-10">
-            {/* REFINED CLOCK: Using text-blue-700/text-blue-400 for a distinct digital 'Augmented' feel */}
             <div className="text-7xl md:text-8xl font-mono font-black text-blue-700 dark:text-blue-400 tracking-tight drop-shadow-sm">
               {stats.time || '00:00:00'}
             </div>
@@ -130,52 +130,83 @@ const App: React.FC = () => {
                Node Uptime: {stats.uptime}
             </div>
           </div>
-          {/* Enhanced Deko Element */}
           <div className="absolute -right-16 -bottom-16 w-80 h-80 bg-blue-500 rounded-full blur-[100px] opacity-10"></div>
           <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]"></div>
         </Card>
 
-        {/* CPU Circle - REFINED */}
+        {/* Refined CPU Circle */}
         <Card className="md:col-span-4 flex flex-col items-center justify-center relative h-64 overflow-hidden">
           <h3 className="absolute top-5 left-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Real-time CPU</h3>
           
           <div className="relative w-44 h-44 flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90 filter drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]">
+            <svg viewBox="0 0 176 176" className="w-full h-full transform -rotate-90 overflow-visible">
               <defs>
-                <linearGradient id="cpuGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient id="cpuGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#60a5fa" />
+                  <stop offset="100%" stopColor="#2dd4bf" />
                 </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
               </defs>
-              {/* Outer Glow Ring */}
-              <circle cx="88" cy="88" r="76" stroke="currentColor" strokeWidth="1" fill="none" className="text-blue-500 opacity-10" />
-              {/* Main Track */}
-              <circle cx="88" cy="88" r="70" stroke="currentColor" strokeWidth="14" fill="none" className="text-gray-300 dark:text-gray-800 opacity-20" />
-              {/* Progress Arc */}
+              
+              {/* Subtle background ring */}
               <circle 
-                cx="88" cy="88" r="70" stroke="url(#cpuGradient)" strokeWidth="14" fill="none" 
+                cx="88" cy="88" r="76" 
+                stroke="currentColor" strokeWidth="1" fill="none" 
+                className="text-blue-500 opacity-5" 
+              />
+              
+              {/* Main Track */}
+              <circle 
+                cx="88" cy="88" r="70" 
+                stroke="currentColor" strokeWidth="12" fill="none" 
+                className="text-gray-300 dark:text-gray-800 opacity-20" 
+              />
+              
+              {/* Refined Progress Arc with Gradient and Smooth Transition */}
+              <circle 
+                cx="88" cy="88" r="70" 
+                stroke="url(#cpuGradient)" strokeWidth="12" fill="none" 
                 strokeDasharray={circumference} 
                 strokeDashoffset={circumference - (stats.cpu / 100) * circumference} 
                 strokeLinecap="round"
-                className="transition-all duration-700 ease-out" 
+                filter="url(#glow)"
+                className="transition-all duration-1000 ease-in-out" 
+              />
+
+              {/* End Tip Glow */}
+              <circle 
+                cx={88 + 70 * Math.cos((stats.cpu / 100) * 2 * Math.PI - Math.PI / 2)}
+                cy={88 + 70 * Math.sin((stats.cpu / 100) * 2 * Math.PI - Math.PI / 2)}
+                r="4"
+                fill="#ffffff"
+                className="transition-all duration-1000 ease-in-out opacity-80"
               />
             </svg>
             
-            <div className="absolute flex flex-col items-center select-none">
-              <span className={`text-4xl font-black font-mono tracking-tighter transition-all duration-300 ${stats.cpu > 80 ? 'text-red-500' : 'text-gray-900 dark:text-gray-100'}`}>
-                {Math.round(stats.cpu)}%
+            <div className="absolute flex flex-col items-center select-none pointer-events-none">
+              <span className={`text-5xl font-black font-mono tracking-tighter transition-all duration-300 ${stats.cpu > 85 ? 'text-red-500 scale-110' : 'text-gray-900 dark:text-gray-100'}`}>
+                {Math.round(stats.cpu)}<span className="text-xl ml-0.5 opacity-50">%</span>
               </span>
               <div className="flex items-center gap-1 mt-0.5">
                  <span className={`w-1.5 h-1.5 rounded-full ${stats.cpu > 80 ? 'bg-red-500 animate-ping' : 'bg-blue-500'}`}></span>
-                 <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">Active</span>
+                 <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Augmented</span>
               </div>
             </div>
           </div>
           
-          {/* Subtle Activity Pattern */}
-          <div className="absolute -bottom-2 w-full h-1 flex gap-1 justify-center opacity-20">
-             {[...Array(12)].map((_, i) => (
-               <div key={i} className={`w-1 h-full rounded-full transition-all duration-500 ${Math.random() > 0.5 ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+          {/* Activity Bar Indicators */}
+          <div className="absolute bottom-4 w-2/3 h-1 flex gap-1 justify-center">
+             {[...Array(15)].map((_, i) => (
+               <div 
+                key={i} 
+                className={`flex-1 h-full rounded-full transition-all duration-300 ${ (stats.cpu / 100) * 15 > i ? 'bg-blue-500 scale-y-125' : 'bg-gray-300 dark:bg-gray-800' }`}
+               ></div>
              ))}
           </div>
         </Card>
@@ -207,12 +238,12 @@ const App: React.FC = () => {
           )}
         </Card>
 
-        {/* Resource Distribution (RAM) */}
+        {/* Resource Distribution (RAM / IO / DISK) */}
         <Card className="md:col-span-3 flex flex-col justify-between h-80">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Memory Graph</h3>
-          <div className="flex space-x-6 h-48 items-end justify-center py-4">
-            <div className="flex flex-col items-center h-full">
-               <div className="w-8 soft-ui-inset relative h-full rounded-full overflow-hidden">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Resource Graph</h3>
+          <div className="flex space-x-5 h-48 items-end justify-center py-4">
+            <div className="flex flex-col items-center h-full" title={`RAM: ${Math.round(stats.ram)}%`}>
+               <div className="w-6 soft-ui-inset relative h-full rounded-full overflow-hidden">
                 <div 
                   className="absolute bottom-0 w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-full transition-all duration-700 ease-in-out"
                   style={{ height: `${stats.ram}%` }}
@@ -220,11 +251,20 @@ const App: React.FC = () => {
               </div>
               <span className="text-[10px] mt-2 font-bold text-gray-400">RAM</span>
             </div>
-            <div className="flex flex-col items-center h-full">
-              <div className="w-8 soft-ui-inset relative h-full rounded-full overflow-hidden">
+            <div className="flex flex-col items-center h-full" title={`Disk Usage: ${Math.round(stats.disk)}%`}>
+              <div className="w-6 soft-ui-inset relative h-full rounded-full overflow-hidden">
+                <div 
+                  className="absolute bottom-0 w-full bg-gradient-to-t from-green-600 to-green-400 rounded-full transition-all duration-700 ease-in-out"
+                  style={{ height: `${stats.disk}%` }}
+                ></div>
+              </div>
+              <span className="text-[10px] mt-2 font-bold text-gray-400 text-green-500/80">DSK</span>
+            </div>
+            <div className="flex flex-col items-center h-full" title="I/O Activity">
+              <div className="w-6 soft-ui-inset relative h-full rounded-full overflow-hidden">
                 <div 
                   className="absolute bottom-0 w-full bg-gradient-to-t from-purple-500 to-purple-300 rounded-full transition-all duration-700 ease-in-out opacity-60"
-                  style={{ height: `${stats.disk}%` }}
+                  style={{ height: `${(stats.network / 1500) * 100}%` }}
                 ></div>
               </div>
               <span className="text-[10px] mt-2 font-bold text-gray-400">IO</span>
