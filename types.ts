@@ -40,6 +40,16 @@ export interface NexusService {
   detail: string;
   cpu: number;
   ramMB: number;
+  diskMB: number;
+}
+
+export interface KanbanTask {
+  id: string;
+  title: string;
+  agent: string | null;
+  status: string | null;
+  movedAt: string;
+  columnTitle: string;
 }
 
 export interface NexusAgent {

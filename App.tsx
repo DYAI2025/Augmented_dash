@@ -5,7 +5,7 @@ import { useAgents } from './hooks/useAgents';
 import { Card } from './components/Card';
 import { ThemeToggle } from './components/ThemeToggle';
 import { InternalLink } from './components/InternalLink';
-import { ServiceState, GeminiInsight, Theme, NexusAgent, NexusService } from './types';
+import { ServiceState, GeminiInsight, Theme, NexusAgent, NexusService, KanbanTask } from './types';
 import { getSystemInsight } from './services/geminiService';
 
 const SERVICE_MAP: { key: keyof ServiceState; label: string; apiName: string }[] = [
@@ -31,6 +31,17 @@ function ramBarColor(pct: number): string {
   if (pct >= 30) return 'from-red-500 to-red-400';
   if (pct >= 15) return 'from-orange-500 to-orange-400';
   return 'from-indigo-500 to-blue-400';
+}
+
+function diskBarColor(mb: number): string {
+  if (mb >= 500) return 'from-yellow-500 to-yellow-400';
+  if (mb >= 200) return 'from-yellow-400 to-amber-300';
+  return 'from-yellow-400 to-yellow-300';
+}
+
+function formatDisk(mb: number): string {
+  if (mb >= 1024) return `${(mb / 1024).toFixed(1)}G`;
+  return `${mb}M`;
 }
 
 function formatRam(mb: number): string {
@@ -102,6 +113,7 @@ const App: React.FC = () => {
   const [fullServices, setFullServices] = useState<NexusService[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [totalSystemRamMB, setTotalSystemRamMB] = useState(4096);
+  const [kanbanTasks, setKanbanTasks] = useState<KanbanTask[]>([]);
 
   // Poll /api/status for service states + resource data
   useEffect(() => {
@@ -128,6 +140,23 @@ const App: React.FC = () => {
 
     fetchServices();
     const interval = setInterval(fetchServices, 5000);
+    return () => { active = false; clearInterval(interval); };
+  }, [isConnected]);
+
+  // Poll kanban tasks
+  useEffect(() => {
+    if (!isConnected) return;
+    let active = true;
+    const fetchKanban = async () => {
+      try {
+        const res = await fetch('/api/kanban/tasks');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active && data.tasks) setKanbanTasks(data.tasks);
+      } catch { /* ignore */ }
+    };
+    fetchKanban();
+    const interval = setInterval(fetchKanban, 30000);
     return () => { active = false; clearInterval(interval); };
   }, [isConnected]);
 
@@ -195,7 +224,7 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-600 dark:text-gray-300">Nexus <span className="text-blue-500">System Dashboard</span></h1>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-800 dark:text-gray-300">DYAI <span className="text-blue-500">Nexus Monitor</span></h1>
           <div className="flex items-center gap-2 mt-1">
             <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
             <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-semibold">
@@ -375,7 +404,7 @@ const App: React.FC = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${isUp ? 'bg-green-500 animate-live' : isDegraded ? 'bg-amber-500' : 'bg-red-500'}`} />
-                      <span className="font-bold text-xs text-gray-700 dark:text-gray-200">{svc.name}</span>
+                      <span className="font-bold text-xs text-gray-800 dark:text-gray-200">{svc.name}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className={`text-[9px] font-bold uppercase tracking-widest ${isUp ? 'text-green-500' : isDegraded ? 'text-amber-500' : 'text-red-500'}`}>
@@ -415,7 +444,7 @@ const App: React.FC = () => {
                   </div>
                   {/* CPU bar */}
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[8px] font-bold text-gray-400 w-6 text-right">CPU</span>
+                    <span className="text-[8px] font-bold text-gray-500 dark:text-gray-400 w-6 text-right">CPU</span>
                     <div className="flex-1 h-1.5 rounded-full soft-ui-inset overflow-hidden">
                       <div className={`h-full rounded-full bg-gradient-to-r ${cpuBarColor(svc.cpu)} transition-all duration-700`} style={{ width: `${Math.max(svc.cpu, 0.5)}%` }} />
                     </div>
@@ -423,11 +452,19 @@ const App: React.FC = () => {
                   </div>
                   {/* RAM bar */}
                   <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-bold text-gray-400 w-6 text-right">RAM</span>
+                    <span className="text-[8px] font-bold text-gray-500 dark:text-gray-400 w-6 text-right">RAM</span>
                     <div className="flex-1 h-1.5 rounded-full soft-ui-inset overflow-hidden">
                       <div className={`h-full rounded-full bg-gradient-to-r ${ramBarColor(ramPct)} transition-all duration-700`} style={{ width: `${Math.max(ramPct, 0.3)}%` }} />
                     </div>
                     <span className="text-[9px] font-mono text-gray-500 w-9 text-right">{svc.ramMB > 0 ? formatRam(svc.ramMB) : '--'}</span>
+                  </div>
+                  {/* Disk bar */}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[8px] font-bold text-gray-500 dark:text-gray-400 w-6 text-right">DSK</span>
+                    <div className="flex-1 h-1.5 rounded-full soft-ui-inset overflow-hidden">
+                      <div className={`h-full rounded-full bg-gradient-to-r ${diskBarColor(svc.diskMB)} transition-all duration-700`} style={{ width: `${svc.diskMB > 0 ? Math.max(Math.min(svc.diskMB / 10, 100), 1) : 0}%` }} />
+                    </div>
+                    <span className="text-[9px] font-mono text-gray-500 w-9 text-right">{svc.diskMB > 0 ? formatDisk(svc.diskMB) : '--'}</span>
                   </div>
                 </div>
               );
@@ -451,6 +488,38 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {agents.map(agent => (
                 <AgentCard key={agent.name} agent={agent} />
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Recent Kanban Tickets */}
+        {kanbanTasks.length > 0 && (
+          <Card className="md:col-span-12 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-[0.3em]">Recent Completed Tasks</h3>
+              <div className="h-px flex-1 mx-6 soft-ui-inset opacity-30"></div>
+              <a href="https://kanban-jet-seven.vercel.app" target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-blue-500 uppercase tracking-widest hover:underline">
+                View Board
+              </a>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {kanbanTasks.map(task => (
+                <div key={task.id} className="p-3 rounded-xl soft-ui-inset border border-white/5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`w-2 h-2 rounded-full ${task.columnTitle === 'Done' ? 'bg-green-500' : 'bg-blue-500'}`} />
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{task.columnTitle}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-tight mb-2">{task.title}</p>
+                  <div className="flex items-center justify-between">
+                    {task.agent && (
+                      <span className="px-1.5 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[8px] font-black rounded uppercase">{task.agent}</span>
+                    )}
+                    <span className="text-[9px] text-gray-400 font-mono">
+                      {new Date(task.movedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
           </Card>
@@ -488,7 +557,7 @@ const App: React.FC = () => {
       </div>
 
       <footer className="pt-8 pb-12 text-center text-[10px] text-gray-400 font-bold uppercase tracking-[0.4em]">
-        Nexus System Dashboard | Real-time API Monitoring | {isConnected ? 'Link Active' : 'Link Offline'}
+        DYAI - Nexus Monitor | Real-time API Monitoring | {isConnected ? 'Link Active' : 'Link Offline'}
       </footer>
     </div>
   );
