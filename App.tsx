@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [networkHistory, setNetworkHistory] = useState<{ time: string; value: number }[]>([]);
   const [cpuHistory, setCpuHistory] = useState<{ time: string; value: number }[]>([]);
+  const [showCriticalOnly, setShowCriticalOnly] = useState(false);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -302,15 +303,25 @@ const App: React.FC = () => {
 
         {/* Terminal Logs */}
         <Card className="md:col-span-12 h-64 font-mono text-xs relative overflow-hidden">
-          <div className="flex justify-between mb-4">
-            <span className="font-bold text-gray-400 tracking-widest uppercase">WS Stream: /var/log/dyai-node.log</span>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-4">
+              <span className="font-bold text-gray-400 tracking-widest uppercase">WS Stream: /var/log/dyai-node.log</span>
+              <button
+                onClick={() => setShowCriticalOnly(!showCriticalOnly)}
+                className={`text-[10px] px-2 py-1 rounded border transition-colors font-bold tracking-wider ${showCriticalOnly ? 'border-red-500 text-red-500 bg-red-500/10' : 'border-gray-500 text-gray-500 hover:text-gray-400'}`}
+              >
+                {showCriticalOnly ? 'CRITICAL ONLY' : 'ALL LOGS'}
+              </button>
+            </div>
             <span className={`flex items-center gap-2 font-bold ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
               <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-ping' : 'bg-red-500'}`}></span>
               {isConnected ? 'STREAMING' : 'DISCONNECTED'}
             </span>
           </div>
           <div className="space-y-2 opacity-90 h-40 overflow-y-auto custom-scrollbar">
-            {logs.map((log) => {
+            {logs
+              .filter(log => !showCriticalOnly || ['error', 'warn'].includes(log.type))
+              .map((log) => {
               const classes = getLogClasses(log.type);
               return (
                 <div key={log.id} className={`flex gap-4 border-l-2 pl-3 py-1.5 transition-all duration-200 group ${classes.border} ${classes.bg}`}>
